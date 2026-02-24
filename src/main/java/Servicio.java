@@ -1,0 +1,63 @@
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+
+public class Servicio {
+    private Repositorio repositorio;
+    private MailerStub mailer;
+
+    public Servicio(Repositorio repositorio, MailerStub mailer) {
+        this.repositorio = repositorio;
+        this.mailer = mailer;
+    }
+
+    public boolean crearToDo(String nombre, LocalDate fechaLimite) {
+        if (nombre == null || nombre.trim().isEmpty()) return false; // Validación
+        ToDo nuevaTarea = new ToDo(nombre, "Sin descripción", fechaLimite);
+        repositorio.almacenarToDo(nuevaTarea);
+        comprobarFechasYAlertar(); // Comprueba tras añadir
+        return true;
+    }
+
+    public boolean agregarEmail(String email) {
+        if (email == null || !email.contains("@")) return false; // Validación
+        repositorio.almacenarEmail(email);
+        comprobarFechasYAlertar(); // Comprueba tras añadir
+        return true;
+    }
+
+    public boolean marcarFinalizada(String nombre) {
+        boolean exito = repositorio.marcarCompletado(nombre);
+        comprobarFechasYAlertar(); // Comprueba tras consultar
+        return exito;
+    }
+
+    public List<ToDo> consultarPendientes() {
+        comprobarFechasYAlertar(); // Comprueba tras consultar
+        List<ToDo> pendientes = new ArrayList<>();
+        for (ToDo tarea : repositorio.obtenerTodasLasTareas()) {
+            if (!tarea.isCompletado()) {
+                pendientes.add(tarea);
+            }
+        }
+        return pendientes;
+    }
+
+    private void comprobarFechasYAlertar() {
+        LocalDate hoy = LocalDate.now();
+        boolean hayVencidas = false;
+        
+        for (ToDo tarea : repositorio.obtenerTodasLasTareas()) {
+            if (!tarea.isCompletado() && tarea.getFechaLimite().isBefore(hoy)) {
+                hayVencidas = true;
+                break;
+            }
+        }
+
+        if (hayVencidas) {
+            for (String email : repositorio.obtenerEmails()) {
+                mailer.enviarCorreo(email, "¡Alerta! Tienes tareas pendientes con fecha límite pasada.");
+            }
+        }
+    }
+}
