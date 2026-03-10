@@ -1,5 +1,6 @@
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.tt1.tareas.MailerStub;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -31,7 +32,7 @@ class ServicioTest {
 		Repositorio repo = new Repositorio(db);
 		MailerStub mailer = new MailerStub();
 		Servicio servicio = new Servicio(repo, mailer);
-		
+
 		LocalDate fechaLimite = LocalDate.now().plusDays(3); // Fecha dentro de 3 días
 
 		// 2. ACT (Actuar: llamamos al método que queremos testar)
